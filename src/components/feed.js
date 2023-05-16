@@ -1,61 +1,39 @@
-// import React from 'react';
-// import Post from './post';
-
-// function Feed() {
-//   const posts = [
-//     {
-//         id: 1,
-//         author: 'Nursery Office',
-//         content: 'talking talking tlaking',
-//         timestamp: '20 mins ago',
-//         likes: 10,
-//         comments: []
-//       },
-//       {
-//         id: 2,
-//         author: 'Nursery Office',
-//         content: 'bla bla bla bla',
-//         timestamp: '40 mins ago',
-//         likes: 5,
-//         comments: []
-//       },
-//   ];
-
-//   return (
-//     <div className="feed">
-//       {posts.map((post) => (
-//         <Post key={post.id} post={post} />
-//       ))}
-//     </div>
-//   );
-// }
-
-// export default Feed;
-
-import React, { useState, useEffect } from 'react';
+import React, { Component } from 'react';
 import Post from './post';
 
-function Feed() {
-  const [posts, setPosts] = useState([]);
-  const [postContent, setPostContent] = useState('');
+class Feed extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      posts: [],
+      postContent: '',
+      isPostValid: false,
+    };
+  }
 
-  useEffect(() => {
+  componentDidMount() {
     const storedPosts = localStorage.getItem('posts');
     if (storedPosts) {
-      setPosts(JSON.parse(storedPosts));
+      this.setState({ posts: JSON.parse(storedPosts) });
     }
-  }, []);
+  }
 
-  useEffect(() => {
-    localStorage.setItem('posts', JSON.stringify(posts));
-  }, [posts]);
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.posts !== this.state.posts) {
+      localStorage.setItem('posts', JSON.stringify(this.state.posts));
+    }
+  }
 
-  const handlePostChange = (event) => {
-    setPostContent(event.target.value);
+  handlePostChange = (event) => {
+    const postContent = event.target.value;
+    const isPostValid = postContent.length >= 5;
+    this.setState({ postContent, isPostValid });
   };
 
-  const handlePostSubmit = (event) => {
+  handlePostSubmit = (event) => {
     event.preventDefault();
+
+    const { postContent } = this.state;
 
     if (postContent.trim() !== '') {
       const newPost = {
@@ -66,29 +44,41 @@ function Feed() {
         comments: [],
       };
 
-      setPosts([...posts, newPost]);
-      setPostContent('');
+      this.setState((prevState) => ({
+        posts: [...prevState.posts, newPost],
+        postContent: '',
+        isPostValid: false,
+      }));
     }
   };
 
-  return (
-    <div className="feed">
-      <h1>Create New Post</h1>
-      <form className="post-form" onSubmit={handlePostSubmit}>
-        <textarea
-          value={postContent}
-          onChange={handlePostChange}
-          placeholder="Write a new post..."
-        ></textarea>
-        <button type="submit">Post</button>
-      </form>
-      <div className="post-list">
-        {posts.map((post) => (
-          <Post key={post.id} post={post} />
-        ))}
+  render() {
+    const { posts, postContent, isPostValid } = this.state;
+
+    return (
+      <div className="feed">
+        <h1>Create New Post</h1>
+        <form className="post-form" onSubmit={this.handlePostSubmit}>
+          <textarea
+            value={postContent}
+            onChange={this.handlePostChange}
+            placeholder="Write a new post..."
+          ></textarea>
+          {postContent.length < 5 && (
+            <p className="validation-message">The post should be at least 5 characters</p>
+          )}
+          <button type="submit" disabled={!isPostValid}>
+            Post
+          </button>
+        </form>
+        <div className="post-list">
+          {posts.map((post) => (
+            <Post key={post.id} post={post} />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 export default Feed;

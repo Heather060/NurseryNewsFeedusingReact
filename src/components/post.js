@@ -1,72 +1,87 @@
-import React, { useState } from 'react';
+import React, { Component } from 'react';
 import Comment from './comment';
 
-function Post({ post }) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
-  const [commentContent, setCommentContent] = useState('');
-  const [comments, setComments] = useState(post.comments);
+class Post extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLiked: false,
+      likeCount: props.post.likes,
+      commentContent: '',
+      comments: props.post.comments,
+    };
+  }
 
-  const handleLike = () => {
+  handleLike = () => {
+    const { isLiked, likeCount } = this.state;
+
     if (isLiked) {
-      setLikeCount(likeCount - 1);
+      this.setState({ likeCount: likeCount - 1, isLiked: false });
     } else {
-      setLikeCount(likeCount + 1);
+      this.setState({ likeCount: likeCount + 1, isLiked: true });
     }
-    setIsLiked(!isLiked);
   };
 
-  const handleCommentChange = (event) => {
-    setCommentContent(event.target.value);
+  handleCommentChange = (event) => {
+    this.setState({ commentContent: event.target.value });
   };
 
-  const handleCommentSubmit = (event) => {
+  handleCommentSubmit = (event) => {
     event.preventDefault();
+
+    const { commentContent, comments } = this.state;
 
     if (commentContent.trim() !== '') {
       const newComment = {
         id: Date.now().toString(),
-        author: 'Nursery Office',
+        author: 'User',
         content: commentContent,
       };
 
-      setComments([...comments, newComment]);
-      setCommentContent('');
+      this.setState((prevState) => ({
+        comments: [...prevState.comments, newComment],
+        commentContent: '',
+      }));
     }
   };
 
-  return (
-    <div className="post">
-      <div className="post-header">
-        <img className="avatar" src="avatar.png" alt="Avatar" />
-        <h3 className="author">{post.author}</h3>
-        <p className="timestamp">{post.timestamp}</p>
+  render() {
+    const { isLiked, likeCount, commentContent, comments } = this.state;
+    const { post } = this.props;
+
+    return (
+      <div className="post">
+        <div className="post-header">
+          <img className="avatar" src="avatar.png" alt="Avatar" />
+          <h3 className="author">{post.author}</h3>
+          <p className="timestamp">{post.timestamp}</p>
+        </div>
+        <div className="post-content">
+          <p>{post.content}</p>
+        </div>
+        <div className="post-actions">
+          <button className={`like-button ${isLiked ? 'liked' : ''}`} onClick={this.handleLike}>
+            {isLiked ? 'Unlike' : 'Like'}
+          </button>
+          <span className="likes-count">{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
+        </div>
+        <div className="post-comments">
+          {comments.map((comment) => (
+            <Comment key={comment.id} comment={comment} />
+          ))}
+        </div>
+        <form className="post-comment-form" onSubmit={this.handleCommentSubmit}>
+          <input
+            type="text"
+            value={commentContent}
+            onChange={this.handleCommentChange}
+            placeholder="Write a comment..."
+          />
+          <button type="submit">Comment</button>
+        </form>
       </div>
-      <div className="post-content">
-        <p>{post.content}</p>
-      </div>
-      <div className="post-actions">
-        <button className={`like-button ${isLiked ? 'liked' : ''}`} onClick={handleLike}>
-          {isLiked ? 'Unlike' : 'Like'}
-        </button>
-        <span className="likes-count">{likeCount} {likeCount === 1 ? 'like' : 'likes'}</span>
-      </div>
-      <div className="post-comments">
-        {comments.map((comment) => (
-          <Comment key={comment.id} comment={comment} />
-        ))}
-      </div>
-      <form className="post-comment-form" onSubmit={handleCommentSubmit}>
-        <input
-          type="text"
-          value={commentContent}
-          onChange={handleCommentChange}
-          placeholder="Write a comment..."
-        />
-        <button type="submit">comment</button>
-      </form>
-    </div>
-  );
+    );
+  }
 }
 
 export default Post;
