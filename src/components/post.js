@@ -34,7 +34,7 @@ class Post extends Component {
     if (commentContent.trim() !== '') {
       const newComment = {
         id: Date.now().toString(),
-        author: 'User',
+        author: 'Nursery Office',
         content: commentContent,
       };
 
@@ -49,6 +49,11 @@ class Post extends Component {
     const { isLiked, likeCount, commentContent, comments } = this.state;
     const { post } = this.props;
 
+    let imageUrl = null;
+    if (post.image instanceof Blob) {
+      imageUrl = URL.createObjectURL(post.image);
+    }
+
     return (
       <div className="post">
         <div className="post-header">
@@ -58,7 +63,8 @@ class Post extends Component {
         </div>
         <div className="post-content">
           <p>{post.content}</p>
-        </div>
+          {imageUrl && <img src={imageUrl} alt="pictures" className="post-image" />}
+        </div>  
         <div className="post-actions">
           <button className={`like-button ${isLiked ? 'liked' : ''}`} onClick={this.handleLike}>
             {isLiked ? 'Unlike' : 'Like'}

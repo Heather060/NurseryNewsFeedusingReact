@@ -7,6 +7,7 @@ class Feed extends Component {
     this.state = {
       posts: [],
       postContent: '',
+      postImage: null,
       isPostValid: false,
     };
   }
@@ -30,16 +31,22 @@ class Feed extends Component {
     this.setState({ postContent, isPostValid });
   };
 
+  handleImageChange = (event) => {
+    const image = event.target.files[0];
+    this.setState({ postImage: image });
+  };
+
   handlePostSubmit = (event) => {
     event.preventDefault();
 
-    const { postContent } = this.state;
+    const { postContent, postImage } = this.state;
 
     if (postContent.trim() !== '') {
       const newPost = {
         id: Date.now().toString(),
         author: 'Nursery Office',
         content: postContent,
+        image: postImage,
         likes: 0,
         comments: [],
       };
@@ -47,13 +54,14 @@ class Feed extends Component {
       this.setState((prevState) => ({
         posts: [...prevState.posts, newPost],
         postContent: '',
+        postImage: null,
         isPostValid: false,
       }));
     }
   };
 
   render() {
-    const { posts, postContent, isPostValid } = this.state;
+    const { posts, postContent, postImage, isPostValid } = this.state;
 
     return (
       <div className="feed">
@@ -64,6 +72,7 @@ class Feed extends Component {
             onChange={this.handlePostChange}
             placeholder="Write a new post..."
           ></textarea>
+          <input type="file" accept="image/*" multiple onChange={this.handleImageChange} />
           {postContent.length < 5 && (
             <p className="validation-message">The post should be at least 5 characters</p>
           )}
